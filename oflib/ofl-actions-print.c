@@ -45,7 +45,7 @@
 
 
 #define ETH_ADDR_FMT                                                    \
-    "%02"PRIx8":%02"PRIx8":%02"PRIx8":%02"PRIx8":%02"PRIx8":%02"PRIx8
+    "%02" PRIx8 ":%02" PRIx8 ":%02" PRIx8 ":%02" PRIx8 ":%02" PRIx8 ":%02" PRIx8
 #define ETH_ADDR_ARGS(ea)                                   \
     (ea)[0], (ea)[1], (ea)[2], (ea)[3], (ea)[4], (ea)[5]
 
@@ -81,7 +81,6 @@ ofl_action_print(FILE *stream, struct ofl_action_header *act, struct ofl_exp *ex
             break;
         }
         case OFPAT_SET_FIELD:{
-            size_t size;
             struct ofl_action_set_field *a = (struct ofl_action_set_field *)act;
             fprintf(stream, "{field:");
             ofl_structs_oxm_tlv_print(stream, a->field);

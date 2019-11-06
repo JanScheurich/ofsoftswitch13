@@ -163,6 +163,12 @@ meter_table_modify(struct meter_table *table, struct ofl_msg_meter_mod *mod) {
     list_replace(&new_entry->flow_refs, &entry->flow_refs);
     list_init(&entry->flow_refs);
 
+    new_entry->stats->flow_count = entry->stats->flow_count;
+    new_entry->stats->packet_in_count = entry->stats->packet_in_count;
+    new_entry->stats->byte_in_count = entry->stats->byte_in_count;
+    new_entry->stats->duration_sec = entry->stats->duration_sec;
+    new_entry->stats->duration_nsec = entry->stats->duration_nsec;
+
     meter_entry_destroy(entry);
     ofl_msg_free_meter_mod(mod, false);
     return 0;
@@ -277,7 +283,7 @@ meter_table_handle_stats_request_meter_conf(struct meter_table *table,
                                   struct ofl_msg_multipart_meter_request *msg UNUSED,
                                   const struct sender *sender) {
     struct meter_entry *entry;
-
+    struct ofl_msg_multipart_reply_meter_conf reply;
     if (msg->meter_id == OFPM_ALL) {
         entry = NULL;
     } else {
@@ -288,13 +294,13 @@ meter_table_handle_stats_request_meter_conf(struct meter_table *table,
         }
     }
 
-    struct ofl_msg_multipart_reply_meter_conf reply =
-            {{{.type = OFPT_MULTIPART_REPLY},
-              .type = OFPMP_METER_CONFIG, .flags = 0x0000},
-             .stats_num = table->entries_num,
-             .stats     = xmalloc(sizeof(struct ofl_meter_config *) * (msg->meter_id == OFPM_ALL ? table->entries_num : 1))
-            };
-
+    reply.header.header.type = OFPT_MULTIPART_REPLY;
+    reply.header.type = OFPMP_METER_CONFIG;
+    reply.header.flags =  0x0000;
+    reply.stats_num = table->entries_num;
+    reply.stats = xmalloc(sizeof(struct ofl_meter_config *) * 
+                (msg->meter_id == OFPM_ALL ? table->entries_num : 1));
+    
     if (msg->meter_id == OFPM_ALL) {
         struct meter_entry *e;
         size_t i = 0;
@@ -327,7 +333,6 @@ meter_table_handle_features_request(struct meter_table *table,
                                          };   
     dp_send_message(table->dp, (struct ofl_msg_header *)&reply, sender);
 
-    free(reply.features);
     ofl_msg_free((struct ofl_msg_header *)msg, table->dp->exp);
     return 0;                                                
                                   

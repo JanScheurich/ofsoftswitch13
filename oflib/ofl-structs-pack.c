@@ -94,8 +94,6 @@ size_t
 ofl_structs_instructions_pack(struct ofl_instruction_header *src, struct ofp_instruction *dst, struct ofl_exp *exp) {
 
     dst->type = htons(src->type);
-    memset(dst->pad, 0x00, 4);
-
     switch (src->type) {
         case OFPIT_GOTO_TABLE: {
             struct ofl_instruction_goto_table *si = (struct ofl_instruction_goto_table *)src;
@@ -128,7 +126,7 @@ ofl_structs_instructions_pack(struct ofl_instruction_header *src, struct ofp_ins
             struct ofp_instruction_actions *di = (struct ofp_instruction_actions *)dst;
 
             total_len = sizeof(struct ofp_instruction_actions) + ofl_actions_ofp_total_len(si->actions, si->actions_num, exp);
-
+            
             di->len = htons(total_len);
             memset(di->pad, 0x00, 4);
             data = (uint8_t *)dst + sizeof(struct ofp_instruction_actions);
@@ -543,7 +541,8 @@ ofl_structs_flow_stats_pack(struct ofl_flow_stats *src, uint8_t *dst, struct ofl
     flow_stats->priority = htons(src->priority);
     flow_stats->idle_timeout = htons(src->idle_timeout);
     flow_stats->hard_timeout = htons(src->hard_timeout);
-    memset(flow_stats->pad2, 0x00, 6);
+    flow_stats->flags = htons(src->flags);
+    memset(flow_stats->pad2, 0x00, 4);
     flow_stats->cookie = hton64(src->cookie);
     flow_stats->packet_count = hton64(src->packet_count);
     flow_stats->byte_count = hton64(src->byte_count);
@@ -764,7 +763,6 @@ ofl_structs_queue_prop_pack(struct ofl_queue_prop_header *src,
             dp->prop_header.len = htons(sizeof(struct ofp_queue_prop_min_rate));
             dp->rate            = htons(sp->rate);
             memset(dp->pad, 0x00, 6);
-
             return sizeof(struct ofp_queue_prop_min_rate);
         }
         case OFPQT_MAX_RATE:{
@@ -817,13 +815,10 @@ ofl_structs_packet_queue_pack(struct ofl_packet_queue *src, struct ofp_packet_qu
     total_len = sizeof(struct ofp_packet_queue) +
                 ofl_structs_queue_prop_ofp_total_len(src->properties,
                                                      src->properties_num);
-
     dst->len = htons(total_len);
-    memset(dst->pad, 0x00, 2);
+    memset(dst->pad, 0x00, 6);
     dst->queue_id = htonl(src->queue_id);
-
     data = (uint8_t *)dst + sizeof(struct ofp_packet_queue);
-
     for (i=0; i<src->properties_num; i++) {
         len = ofl_structs_queue_prop_pack(src->properties[i],
                                         (struct ofp_queue_prop_header *)data);

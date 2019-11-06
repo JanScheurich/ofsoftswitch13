@@ -130,11 +130,11 @@ udatapath_cmd(int argc, char *argv[])
     for (i = optind; i < argc; i += 2) {
         const char *pvconn_name = argv[i];
         const char *pvconn_name_aux = NULL;
-        if (use_multiple_connections)
-            pvconn_name_aux = argv[i + 1];
-
         struct pvconn *pvconn, *pvconn_aux = NULL;
         int retval, retval_aux;
+
+        if (use_multiple_connections)
+            pvconn_name_aux = argv[i + 1];
 
         retval = pvconn_open(pvconn_name, &pvconn);
         if (!retval || retval == EAGAIN) {
@@ -254,9 +254,9 @@ parse_options(struct datapath *dp, int argc, char *argv[])
             if (strlen(optarg) != 12
                 || strspn(optarg, "0123456789abcdefABCDEF") != 12) {
                 ofp_fatal(0, "argument to -d or --datapath-id must be "
-                          "exactly 12 hex digits");
+                          "exactly 16 hex digits");
             }
-            dpid = strtoll(optarg, NULL, 16);
+            dpid = strtoll(optarg, NULL, 12);
             if (!dpid) {
                 ofp_fatal(0, "argument to -d or --datapath-id must "
                           "be nonzero");
